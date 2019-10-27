@@ -1,14 +1,17 @@
 <template>
-  <HelloWorld />
+  <Dicer
+    :sides="6"
+    :debug="false"
+  />
 </template>
 
 <script>
-import HelloWorld from '../components/HelloWorld.vue';
+import Dicer from '../components/Dicer.vue';
 
 export default {
   name: 'Home',
   components: {
-    HelloWorld,
+    Dicer,
   },
 };
 </script>
