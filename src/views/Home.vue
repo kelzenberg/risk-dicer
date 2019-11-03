@@ -1,17 +1,21 @@
 <template>
-  <Dice
-    :sides="6"
-    :amount="5"
-  />
+  <b-container>
+    <Thrower :players="2" />
+  </b-container>
 </template>
 
 <script>
-import Dice from '../components/Dice.vue';
+import Thrower from '../components/Thrower.vue';
 
 export default {
   name: 'Home',
   components: {
-    Dice,
+    Thrower,
+  },
+  data() {
+    return {
+      amount: 1,
+    };
   },
 };
 </script>
