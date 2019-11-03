@@ -1,7 +1,7 @@
 <template>
   <Dicer
     :sides="6"
-    :debug="false"
+    :amount="5"
   />
 </template>
 
