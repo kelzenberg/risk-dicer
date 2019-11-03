@@ -1,17 +1,17 @@
 <template>
-  <Dicer
+  <Dice
     :sides="6"
     :amount="5"
   />
 </template>
 
 <script>
-import Dicer from '../components/Dicer.vue';
+import Dice from '../components/Dice.vue';
 
 export default {
   name: 'Home',
   components: {
-    Dicer,
+    Dice,
   },
 };
 </script>
