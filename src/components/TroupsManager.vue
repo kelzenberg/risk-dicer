@@ -72,16 +72,21 @@ export default {
   data() {
     return {
       debugRefresh: 0,
-      adjectives: ['mutig', 'hoffnungsvoll', 'wutentbrannt', 'kriegerisch'],
+      adjectives: ['mutig', 'hoffnungsvoll', 'wutentbrannt', 'kriegerisch', 'entschlossen', 'selbstbewusst', 'kühn', 'tapfer', 'forsch', 'verwegen', 'heldenhaft', 'wagemutig', 'beherzt', 'konzentriert', 'überlegt', 'gelassen', 'beharrlich', 'kaltblütig', 'wacker', 'unerschrocken', 'tollkühn', 'keck', 'furchtlos', 'couragiert', 'guten Mutes', 'draufgängerisch', 'stolz', 'optimistisch', 'zuversichtlich', 'rasant', 'energisch', 'schwungvoll', 'hartnäckig', 'rigoros', 'MIT EINEM F****** EINH0RN'],
       players: [],
       fightStarted: false,
     };
   },
   computed: {
     randomAdjectives() {
+      const rand1 = Math.floor(Math.random() * this.adjectives.length);
+      let rand2 = Math.floor(Math.random() * this.adjectives.length);
+      while (rand1 === rand2) {
+        rand2 = Math.floor(Math.random() * this.adjectives.length);
+      }
       return [
-        this.adjectives[Math.floor(Math.random() * this.adjectives.length)],
-        this.adjectives[Math.floor(Math.random() * this.adjectives.length)],
+        this.adjectives[rand1],
+        this.adjectives[rand2],
       ];
     },
   },
