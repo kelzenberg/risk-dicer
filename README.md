@@ -1,4 +1,4 @@
-# bootstrap-vue-template
+# Risk Dicer
 
 ## Project setup
 ```
