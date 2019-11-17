@@ -1,20 +1,22 @@
 <template>
-  <b-container>
-    <Thrower :players="2" />
+  <b-container class="mt-5">
+    <h2 class="mb-4">
+      Risiko Würfler 9000
+    </h2>
+    <TroupsManager :player-amount="2" />
   </b-container>
 </template>
 
 <script>
-import Thrower from '../components/Thrower.vue';
+import TroupsManager from '../components/TroupsManager.vue';
 
 export default {
   name: 'Home',
   components: {
-    Thrower,
+    TroupsManager,
   },
   data() {
     return {
-      amount: 1,
     };
   },
 };
