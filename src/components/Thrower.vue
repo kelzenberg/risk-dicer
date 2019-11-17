@@ -7,26 +7,30 @@
       <b-form-input
         v-model="player.throwAmount"
         type="number"
+        number
         min="1"
-        change
+        :formatter="formatInput"
         placeholder="Enter amount of dice throws"
         autocomplete="false"
         :autofocus="player.id === 0"
+        @change="handleInputChange(player.id, $event)"
       />
-      <div>id: {{ player.id }}</div>
-      <div>throwAmount: {{ player.throwAmount }}</div>
-      <div>throwResults: {{ player.throwResults }}</div>
-      <hr>
-      <div
-        v-if="player.throwAmount > 0"
-      >
-        <Dice
-          v-for="dice in player.throwAmount"
-          :key="dice"
-          :sides="sides"
-          @roll="storeResult(player.id, dice, $event)"
-        />
+      <div :key="debugRefresh">
+        <!-- DEBUG -->
+        <h5>Player info:</h5>
+        <div>player.id: {{ player.id }} ({{ typeof player.id }})</div>
+        <div>throwAmount: {{ player.throwAmount }} ({{ typeof player.throwAmount }})</div>
+        <div>throwResults: {{ player.throwResults }}</div>
       </div>
+      <hr>
+      <h5>Dices rolled:</h5>
+      <Dice
+        v-for="diceId in player.throwAmount"
+        :key="diceId"
+        :sides="sides"
+        :number="diceId"
+        @roll="handleRoll(player.id, diceId, $event)"
+      />
     </b-card>
   </div>
 </template>
@@ -44,6 +48,7 @@ export default {
   },
   data() {
     return {
+      debugRefresh: 0,
       sides: 6,
       playerResults: [],
     };
@@ -56,12 +61,19 @@ export default {
     }));
   },
   methods: {
-    storeResult(playerId, diceId, result) {
-      const currentThrows = this.playerResults[playerId].throwResults;
-      if (currentThrows.length > diceId - 1) {
-        this.playerResults[playerId].throwResults = currentThrows.slice(0, diceId - 1);
-      }
+    formatInput(value) {
+      const converted = parseInt(value, 10);
+      return converted >= 0 ? converted : 0;
+    },
+    handleRoll(playerId, diceId, result) {
       this.playerResults[playerId].throwResults[diceId - 1] = result;
+    },
+    handleInputChange(playerId, newThrowAmount) {
+      this.debugRefresh += 1; // DEBUG
+      const { throwResults } = this.playerResults[playerId];
+      const slicedThrowResults = throwResults.slice(0, newThrowAmount);
+      this.playerResults[playerId].throwResults = slicedThrowResults;
+      this.debugRefresh += 1; // DEBUG
     },
   },
 };

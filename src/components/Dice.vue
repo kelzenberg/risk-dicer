@@ -1,14 +1,12 @@
 <template>
-  <div>
-    <div>Dice Result: {{ result }}</div>
-  </div>
+  <div>Dice {{ number }} rolled a {{ result }}</div>
 </template>
 
 <script>
 export default {
-  name: 'Dicer',
+  name: 'Dice',
   props: {
-    debug: { type: Boolean, default: false },
+    number: { type: Number, default: -1, required: true },
     sides: { type: Number, default: 6, required: true },
   },
   data() {
@@ -18,11 +16,11 @@ export default {
   },
   mounted() {
     this.result = this.roll();
+    this.$emit('roll', this.result);
   },
   methods: {
     roll() {
       const result = Math.floor(Math.random() * this.sides) + 1;
-      this.$emit('roll', result);
       return result;
     },
     /* rollMultiple(amount = 1) {
