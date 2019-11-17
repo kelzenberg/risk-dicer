@@ -1,5 +1,8 @@
 <template>
-  <router-view id="app" />
+  <router-view
+    id="app"
+    class="mt-5"
+  />
 </template>
 
 <style lang="scss">

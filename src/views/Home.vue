@@ -1,5 +1,5 @@
 <template>
-  <b-container class="mt-5">
+  <b-container>
     <h2 class="mb-4">
       Risiko Würfler 9000
     </h2>

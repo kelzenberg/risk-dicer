@@ -1,6 +1,9 @@
 <template>
   <div>
-    <b-card-group deck>
+    <b-card-group
+      deck
+      class="mb-4"
+    >
       <b-card
         v-for="player in players"
         :key="player.id"
@@ -16,27 +19,42 @@
         <b-form-input
           v-model="player.troupsAmount"
           type="number"
-          number
           min="1"
+          number
           :formatter="formatInput"
-          placeholder="Gib die Anzahl der Truppen ein"
           autocomplete="false"
           :autofocus="player.id === 0"
+          placeholder="Gib die Anzahl der Truppen ein"
+          :disabled="fightStarted"
           @change="handleTroupsAmount(player.id, $event)"
         />
         <b-form-text>
           Gesamtsumme der {{ player.id === 0 ? 'angreifenden' : 'sich zu verteidigenden' }} Truppen
         </b-form-text>
-        <hr>
-        <div :key="debugRefresh">
-          Results: {{ player.throwResults }}
+        <div v-if="fightStarted">
+          <hr>
+          <div :key="debugRefresh">
+            Results: {{ player.throwResults }}
+          </div>
+          <Thrower
+            :throw-amount="player.throwAmount"
+            @results="handleThrowResults(player.id, $event)"
+          />
         </div>
-        <Thrower
-          :throw-amount="player.throwAmount"
-          @results="handleThrowResults(player.id, $event)"
-        />
       </b-card>
     </b-card-group>
+    <div
+      class="w-75 mx-auto"
+    >
+      <b-button
+        size="lg"
+        :variant="fightStarted ? 'secondary' : 'danger'"
+        block
+        @click="handleFightStart"
+      >
+        {{ fightStarted ? 'Reset' : 'Fight!' }}
+      </b-button>
+    </div>
   </div>
 </template>
 
@@ -56,6 +74,7 @@ export default {
       debugRefresh: 0,
       adjectives: ['mutig', 'hoffnungsvoll', 'wutentbrannt', 'kriegerisch'],
       players: [],
+      fightStarted: false,
     };
   },
   computed: {
@@ -82,7 +101,7 @@ export default {
     handleTroupsAmount(playerId, newTroupsAmount) {
       this.debugRefresh += 1; // DEBUG
 
-      const newThrowAmount = this.calculateThrowAmount(newTroupsAmount);
+      const newThrowAmount = this.calculateThrowAmount(playerId, newTroupsAmount);
       this.players[playerId].throwAmount = newThrowAmount;
 
       this.sliceThrowResults(playerId, newThrowAmount);
@@ -103,7 +122,10 @@ export default {
       const { throwResults } = this.players[playerId];
       this.players[playerId].throwResults = throwResults.slice(0, end);
     },
-    calculateThrowAmount(newTroupsAmount) {
+    handleFightStart() {
+      this.fightStarted = !this.fightStarted;
+    },
+    calculateThrowAmount(playerId, newTroupsAmount) {
       /* TODO: logic for calculating correct amount of 3/2/1 dice throws
       depending on amount of troups goes here */
       return newTroupsAmount;
