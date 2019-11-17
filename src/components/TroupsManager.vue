@@ -22,21 +22,31 @@
           placeholder="Gib die Anzahl der Truppen ein"
           autocomplete="false"
           :autofocus="player.id === 0"
-          @change="handleInputChange(player.id, $event)"
+          @change="handleTroupsAmount(player.id, $event)"
         />
         <b-form-text>
           Gesamtsumme der {{ player.id === 0 ? 'angreifenden' : 'sich zu verteidigenden' }} Truppen
         </b-form-text>
+        <hr>
+        <div :key="debugRefresh">
+          Results: {{ player.throwResults }}
+        </div>
+        <Thrower
+          :throw-amount="player.throwAmount"
+          @results="handleThrowResults(player.id, $event)"
+        />
       </b-card>
     </b-card-group>
   </div>
 </template>
 
 <script>
+import Thrower from './Thrower.vue';
 
 export default {
   name: 'TroupsManager',
   components: {
+    Thrower,
   },
   props: {
     playerAmount: { type: Number, default: 2, required: true },
@@ -69,15 +79,34 @@ export default {
       const converted = parseInt(value, 10);
       return converted >= 0 ? converted : 0;
     },
-    handleRoll(playerId, diceId, result) {
-      this.players[playerId].throwResults[diceId - 1] = result;
+    handleTroupsAmount(playerId, newTroupsAmount) {
+      this.debugRefresh += 1; // DEBUG
+
+      const newThrowAmount = this.calculateThrowAmount(newTroupsAmount);
+      this.players[playerId].throwAmount = newThrowAmount;
+
+      this.sliceThrowResults(playerId, newThrowAmount);
+
+      this.debugRefresh += 1; // DEBUG
     },
-    handleInputChange(playerId, newThrowAmount) {
+    handleThrowResults(playerId, newThrowResults) {
       this.debugRefresh += 1; // DEBUG
+
+      const player = this.players[playerId];
+      player.throwResults = newThrowResults;
+
+      this.sliceThrowResults(playerId, player.throwAmount);
+
+      this.debugRefresh += 1; // DEBUG
+    },
+    sliceThrowResults(playerId, end) {
       const { throwResults } = this.players[playerId];
-      const slicedThrowResults = throwResults.slice(0, newThrowAmount);
-      this.players[playerId].throwResults = slicedThrowResults;
-      this.debugRefresh += 1; // DEBUG
+      this.players[playerId].throwResults = throwResults.slice(0, end);
+    },
+    calculateThrowAmount(newTroupsAmount) {
+      /* TODO: logic for calculating correct amount of 3/2/1 dice throws
+      depending on amount of troups goes here */
+      return newTroupsAmount;
     },
   },
 };
