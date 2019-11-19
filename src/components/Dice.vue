@@ -1,5 +1,5 @@
 <template>
-  <div>Dice {{ number }} rolled a {{ result }}</div>
+  <span />
 </template>
 
 <script>

@@ -8,6 +8,7 @@
         v-for="player in players"
         :key="player.id"
         :title="player.id === 0 ? 'Spieler A' : 'Spieler B'"
+        :border-variant="player.id === 0 ? attackerBorderColor : defenderBorderColor"
       >
         <b-card-text>
           wird {{
@@ -40,11 +41,9 @@
             v-for="(aThrow, aThrowId) in player.diceThrows"
             :key="player.id + '-' + aThrowId"
             :dices-to-throw="aThrow.diceAmount"
+            :class="player.id === 0 ? 'text-right': ''"
             @throwResult="handleThrowResult(player.id, aThrowId, $event)"
           />
-          <div>
-            (Sorted: {{ player.id === 0 ? attackerThrowResults :defenderThrowResults }})
-          </div>
         </div>
       </b-card>
     </b-card-group>
@@ -94,6 +93,20 @@ export default {
         this.adjectives[rand1],
         this.adjectives[rand2],
       ];
+    },
+    attackerBorderColor() {
+      const { isWinner } = this.players[0];
+      if (isWinner !== null) {
+        return isWinner ? 'success' : 'danger';
+      }
+      return '';
+    },
+    defenderBorderColor() {
+      const { isWinner } = this.players[1];
+      if (isWinner !== null) {
+        return isWinner ? 'success' : 'danger';
+      }
+      return '';
     },
     attackerTroupsLeft() {
       return this.players[0].troupsLeft;
@@ -183,12 +196,25 @@ export default {
 
       console.log(`attacker won ${attackerWins}x and has ${attacker.troupsLeft - defenderWins} out of ${attacker.troupsLeft} troups left`);
       console.log(`defender won ${defenderWins}x and has ${defender.troupsLeft - attackerWins} out of ${defender.troupsLeft} troups left`);
-      attacker.troupsLost = defenderWins;
-      defender.troupsLost = attackerWins;
+      attacker.troupsLost += defenderWins;
+      defender.troupsLost += attackerWins;
       attacker.troupsLeft -= defenderWins;
       defender.troupsLeft -= attackerWins;
 
       // TODO: call another throw until troupsLeft from one party is 0
+      if (attacker.troupsLeft > 0 && defender.troupsLeft > 0) {
+        attacker.diceThrows[throwId + 1] = {
+          diceAmount: this.getDiceAmountForThrow(0),
+          throwResult: [],
+        };
+        defender.diceThrows[throwId + 1] = {
+          diceAmount: this.getDiceAmountForThrow(1),
+          throwResult: [],
+        };
+      } else if (this.fightStarted) {
+        attacker.isWinner = attacker.troupsLeft > 0;
+        defender.isWinner = defender.troupsLeft > 0;
+      }
     },
     evaluateResultsFromThrow(attackerResult, defenderResult) {
       // [4,2,5] vs. [6,1] or [2,1] vs. [2,1] or [4] vs. [1, 5]
@@ -225,6 +251,7 @@ export default {
         troupsLost: 0,
         // e.g.     [{ diceAmount: 3, throwResult: [ 2, 5, 6 ] }]
         diceThrows: [{ diceAmount: 1, throwResult: [] }],
+        isWinner: null,
       }));
 
       this.setDiceAmountForPlayers();

@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h5>This throw resulted in:</h5>
     <Dice
       v-for="diceId in dicesToThrow"
       :key="diceId"
@@ -8,6 +7,7 @@
       :number="diceId"
       @roll="handleDiceRoll(diceId, $event)"
     />
+    <div>{{ throwResult }}</div>
   </div>
 </template>
 
