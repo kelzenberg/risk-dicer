@@ -17,7 +17,7 @@
           }}
         </b-card-text>
         <b-form-input
-          v-model="player.troups"
+          v-model="player.initialTroups"
           type="number"
           min="1"
           number
@@ -31,6 +31,7 @@
         <b-form-text>
           Gesamtsumme der {{ player.id === 0 ? 'angreifenden' : 'sich zu verteidigenden' }} Truppen
         </b-form-text>
+        <div>troups left: {{ player.troupsLeft }}</div>
         <div v-if="fightStarted">
           <hr>
           <Thrower
@@ -91,10 +92,10 @@ export default {
       ];
     },
     attackerTroups() {
-      return this.players[0].troups;
+      return this.players[0].troupsLeft;
     },
     defenderTroups() {
-      return this.players[1].troups;
+      return this.players[1].troupsLeft;
     },
     attackerThrowResults() {
       return this.players[0].diceThrows.map(aThrow => aThrow.throwResult);
@@ -114,8 +115,9 @@ export default {
     /* Event Handler */
 
     handleTroupsChange(playerId, newTroups) {
-      this.players[playerId].troups = newTroups;
-      this.players[0].diceThrows = [{ diceAmount: 0, throwResult: [] }];
+      this.players[playerId].initialTroups = newTroups;
+      this.players[playerId].troupsLeft = newTroups;
+      this.players[playerId].diceThrows = [{ diceAmount: 0, throwResult: [] }];
       this.players[0].diceThrows[0].diceAmount = this.getThisThrowsDiceAmount(playerId);
     },
     handleThrowResult(playerId, aThrowId, throwResult) {
@@ -126,6 +128,8 @@ export default {
       }
     },
     handleFightStart() {
+      this.setTroupsLeft(); // backup
+
       this.fightStarted = !this.fightStarted;
       if (!this.fightStarted) {
         this.setUpPlayers();
@@ -137,15 +141,15 @@ export default {
     getThisThrowsDiceAmount(playerId) {
       const isAttacker = this.isAttacker(playerId);
       const maxDices = isAttacker ? 3 : 2;
-      const troups = isAttacker ? this.attackerTroups : this.defenderTroups;
+      const troupsLeft = isAttacker ? this.attackerTroups : this.defenderTroups;
       //                           3(2)        2(1)          1(0)         0(-1)
       const diceCombinations = [maxDices, maxDices - 1, maxDices - 2, maxDices - 3]
         .filter(number => number > 0) // only amount above 0 (3,2,1 and 2,1)
         .map(dices => ({ // fill above 0s with infos
           dices,
-          troups,
-          fits: Math.floor(troups / dices) >= 1,
-          fitsTimes: Math.floor(troups / dices),
+          troupsLeft,
+          fits: Math.floor(troupsLeft / dices) >= 1,
+          fitsTimes: Math.floor(troupsLeft / dices),
         }));
         // return biggest (= first) fitting amount of dices for this throw
       return diceCombinations.filter(dices => dices.fits)[0].dices;
@@ -153,12 +157,12 @@ export default {
     setThisThrowsWinner(throwId) {
       const attacker = this.players[0];
       const defender = this.players[1];
-      const { attackerWon, defenderWon } = this.compareThrowResults(
+      const { attackerWins, defenderWins } = this.compareThrowResults(
         attacker.diceThrows[throwId].throwResult,
         defender.diceThrows[throwId].throwResult,
       );
-      attacker.troups -= defenderWon;
-      defender.troups -= attackerWon;
+      attacker.troupsLeft -= defenderWins;
+      defender.troupsLeft -= attackerWins;
     },
     compareThrowResults(attackerResult, defenderResult) {
       // [4,2,5] vs. [6,1] or [2,1] vs. [2,1] or [4] vs. [1, 5]
@@ -176,9 +180,9 @@ export default {
         return attackerDice > defenderDice; // if equal, defender always wins
       });
 
-      const attackerWon = matchResults.filter(win => win === true).length;
-      const defenderWon = matchResults.length - attackerWon;
-      return { attackerWon, defenderWon };
+      const attackerWins = matchResults.filter(win => win === true).length;
+      const defenderWins = matchResults.length - attackerWins;
+      return { attackerWins, defenderWins };
     },
 
     /* Helper Functions */
@@ -186,9 +190,15 @@ export default {
     setUpPlayers() {
       this.players = [...Array(this.playerAmount)].map((_, index) => ({
         id: index,
-        troups: 1,
-        diceThrows: [], // e.g. [ { diceAmount: 3, throwResult: [ 2, 5, 6 ]} ]
+        initialTroups: 1,
+        troupsLeft: 1,
+        // e.g.     [{ diceAmount: 3, throwResult: [ 2, 5, 6 ] }]
+        diceThrows: [{ diceAmount: 0, throwResult: [] }],
       }));
+    },
+    setTroupsLeft() {
+      this.players[0].troupsLeft = this.players[0].initialTroups;
+      this.players[1].troupsLeft = this.players[1].initialTroups;
     },
     setDiceAmountForPlayers() {
       this.players[0].diceThrows = [
