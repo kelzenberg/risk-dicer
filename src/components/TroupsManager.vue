@@ -79,6 +79,7 @@ export default {
       debugRefresh: 0,
       adjectives: ['mutig', 'hoffnungsvoll', 'wutentbrannt', 'kriegerisch', 'entschlossen', 'selbstbewusst', 'kühn', 'tapfer', 'forsch', 'verwegen', 'heldenhaft', 'wagemutig', 'beherzt', 'konzentriert', 'überlegt', 'gelassen', 'beharrlich', 'kaltblütig', 'wacker', 'unerschrocken', 'tollkühn', 'keck', 'furchtlos', 'couragiert', 'guten Mutes', 'draufgängerisch', 'stolz', 'optimistisch', 'zuversichtlich', 'rasant', 'energisch', 'schwungvoll', 'hartnäckig', 'rigoros', 'MIT EINEM F****** EINH0RN'],
       players: [],
+      initialTroups: 3,
       fightStarted: false,
     };
   },
@@ -116,9 +117,6 @@ export default {
   beforeMount() {
     this.setUpPlayers();
   },
-  mounted() {
-    this.setDiceAmountForPlayers();
-  },
   methods: {
 
     /* Event Handler */
@@ -135,8 +133,6 @@ export default {
       this.updateTroupsForThrow(aThrowId);
     },
     handleFightStart() {
-      this.resetTroups(); // backup
-
       this.fightStarted = !this.fightStarted;
       if (!this.fightStarted) {
         this.setUpPlayers();
@@ -145,7 +141,7 @@ export default {
 
     /* Business Logic */
 
-    getThisThrowsDiceAmount(playerId) {
+    getDiceAmountForThrow(playerId) {
       const isAttacker = this.isAttacker(playerId);
       const maxDices = isAttacker ? 3 : 2;
       const troupsLeft = isAttacker ? this.attackerTroupsLeft : this.defenderTroupsLeft;
@@ -180,7 +176,7 @@ export default {
       const {
         attackerWins,
         defenderWins,
-      } = this.evaluateResultsForThrow(
+      } = this.evaluateResultsFromThrow(
         attackerThrowResult,
         defenderThrowResult,
       );
@@ -194,7 +190,7 @@ export default {
 
       // TODO: call another throw until troupsLeft from one party is 0
     },
-    evaluateResultsForThrow(attackerResult, defenderResult) {
+    evaluateResultsFromThrow(attackerResult, defenderResult) {
       // [4,2,5] vs. [6,1] or [2,1] vs. [2,1] or [4] vs. [1, 5]
 
       // reverse sorting: first = highest, last = lowest
@@ -221,29 +217,24 @@ export default {
     /* Helper Functions */
 
     setUpPlayers() {
+      const { initialTroups } = this;
       this.players = [...Array(this.playerAmount)].map((_, index) => ({
         id: index,
-        initialTroups: 1,
-        troupsLeft: 1,
+        initialTroups,
+        troupsLeft: initialTroups,
         troupsLost: 0,
         // e.g.     [{ diceAmount: 3, throwResult: [ 2, 5, 6 ] }]
         diceThrows: [{ diceAmount: 1, throwResult: [] }],
       }));
-    },
-    resetTroups() {
-      const attacker = this.players[0];
-      const defender = this.players[1];
-      attacker.troupsLeft = attacker.initialTroups;
-      defender.troupsLeft = defender.initialTroups;
-      attacker.troupsLost = 0;
-      defender.troupsLost = 0;
+
+      this.setDiceAmountForPlayers();
     },
     setDiceAmountForPlayers() {
       this.players[0].diceThrows = [
-        { diceAmount: this.getThisThrowsDiceAmount(0), throwResult: [] },
+        { diceAmount: this.getDiceAmountForThrow(0), throwResult: [] },
       ];
       this.players[1].diceThrows = [
-        { diceAmount: this.getThisThrowsDiceAmount(1), throwResult: [] },
+        { diceAmount: this.getDiceAmountForThrow(1), throwResult: [] },
       ];
     },
     isAttacker(playerId) {
