@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h5>Dices rolled:</h5>
+    <h5>This throw resulted in:</h5>
     <Dice
       v-for="diceId in dicesForThrow"
       :key="diceId"

@@ -33,9 +33,6 @@
         </b-form-text>
         <div v-if="fightStarted">
           <hr>
-          <div :key="debugRefresh">
-            Results: {{ player.throwResults }}
-          </div>
           <Thrower
             v-for="(aThrow, aThrowId) in player.diceThrows"
             :key="player.id + '-' + aThrowId"
@@ -121,7 +118,7 @@ export default {
       this.players[0].diceThrows = [{ diceAmount: 0, throwResult: [] }];
       this.players[0].diceThrows[0].diceAmount = this.getThisThrowsDiceAmount(playerId);
     },
-    async handleThrowResult(playerId, aThrowId, throwResult) {
+    handleThrowResult(playerId, aThrowId, throwResult) {
       this.players[playerId].diceThrows[aThrowId].throwResult = throwResult;
       // TODO: following...
       if (this.attackerTroups > 0 && this.defenderTroups > 0) {
@@ -129,8 +126,10 @@ export default {
       }
     },
     handleFightStart() {
-      // TODO: do resets etc.
       this.fightStarted = !this.fightStarted;
+      if (!this.fightStarted) {
+        this.setUpPlayers();
+      }
     },
 
     /* Business Logic */
