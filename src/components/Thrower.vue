@@ -2,7 +2,7 @@
   <div>
     <h5>Dices rolled:</h5>
     <Dice
-      v-for="diceId in throwAmount"
+      v-for="diceId in dicesForThrow"
       :key="diceId"
       :sides="sides"
       :number="diceId"
@@ -20,18 +20,18 @@ export default {
     Dice,
   },
   props: {
-    throwAmount: { type: Number, default: 0, required: true },
+    dicesForThrow: { type: Number, default: 0, required: true },
   },
   data() {
     return {
       sides: 6,
-      throwResults: [],
+      throwResult: [],
     };
   },
   methods: {
-    handleDiceRoll(diceId, diceResult) {
-      this.throwResults[diceId - 1] = diceResult;
-      this.$emit('results', this.throwResults);
+    handleDiceRoll(diceId, diceRollResult) {
+      this.throwResult[diceId - 1] = diceRollResult;
+      this.$emit('throwResult', this.throwResult);
     },
   },
 };

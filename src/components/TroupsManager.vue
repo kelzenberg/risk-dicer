@@ -17,7 +17,7 @@
           }}
         </b-card-text>
         <b-form-input
-          v-model="player.troupsAmount"
+          v-model="player.troups"
           type="number"
           min="1"
           number
@@ -26,7 +26,7 @@
           :autofocus="player.id === 0"
           placeholder="Gib die Anzahl der Truppen ein"
           :disabled="fightStarted"
-          @change="handleTroupsAmount(player.id, $event)"
+          @change="handleTroupsChange(player.id, $event)"
         />
         <b-form-text>
           Gesamtsumme der {{ player.id === 0 ? 'angreifenden' : 'sich zu verteidigenden' }} Truppen
@@ -37,8 +37,10 @@
             Results: {{ player.throwResults }}
           </div>
           <Thrower
-            :throw-amount="player.throwAmount"
-            @results="handleThrowResults(player.id, $event)"
+            v-for="(aThrow, aThrowId) in player.diceThrows"
+            :key="player.id + '-' + aThrowId"
+            :dices-for-throw="aThrow.diceAmount"
+            @throwResult="handleThrowResult(player.id, aThrowId, $event)"
           />
         </div>
       </b-card>
@@ -46,6 +48,8 @@
     <div
       class="w-75 mx-auto"
     >
+      <div>attackerThrowResults: {{ attackerThrowResults }}</div>
+      <div>defenderThrowResults: {{ defenderThrowResults }}</div>
       <b-button
         size="lg"
         :variant="fightStarted ? 'secondary' : 'danger'"
@@ -89,51 +93,118 @@ export default {
         this.adjectives[rand2],
       ];
     },
+    attackerTroups() {
+      return this.players[0].troups;
+    },
+    defenderTroups() {
+      return this.players[1].troups;
+    },
+    attackerThrowResults() {
+      return this.players[0].diceThrows.map(aThrow => aThrow.throwResult);
+    },
+    defenderThrowResults() {
+      return this.players[1].diceThrows.map(aThrow => aThrow.throwResult);
+    },
   },
   beforeMount() {
-    this.players = [...Array(this.playerAmount)].map((_, index) => ({
-      id: index,
-      troupsAmount: 0,
-      throwAmount: 0,
-      throwResults: [],
-    }));
+    this.setUpPlayers();
+  },
+  mounted() {
+    this.setDiceAmountForPlayers();
   },
   methods: {
+
+    /* Event Handler */
+
+    handleTroupsChange(playerId, newTroups) {
+      this.players[playerId].troups = newTroups;
+      this.players[0].diceThrows = [{ diceAmount: 0, throwResult: [] }];
+      this.players[0].diceThrows[0].diceAmount = this.getThisThrowsDiceAmount(playerId);
+    },
+    async handleThrowResult(playerId, aThrowId, throwResult) {
+      this.players[playerId].diceThrows[aThrowId].throwResult = throwResult;
+      // TODO: following...
+      if (this.attackerTroups > 0 && this.defenderTroups > 0) {
+        this.setThisThrowsWinner(aThrowId);
+      }
+    },
+    handleFightStart() {
+      // TODO: do resets etc.
+      this.fightStarted = !this.fightStarted;
+    },
+
+    /* Business Logic */
+
+    getThisThrowsDiceAmount(playerId) {
+      const isAttacker = this.isAttacker(playerId);
+      const maxDices = isAttacker ? 3 : 2;
+      const troups = isAttacker ? this.attackerTroups : this.defenderTroups;
+      //                           3(2)        2(1)          1(0)         0(-1)
+      const diceCombinations = [maxDices, maxDices - 1, maxDices - 2, maxDices - 3]
+        .filter(number => number > 0) // only amount above 0 (3,2,1 and 2,1)
+        .map(dices => ({ // fill above 0s with infos
+          dices,
+          troups,
+          fits: Math.floor(troups / dices) >= 1,
+          fitsTimes: Math.floor(troups / dices),
+        }));
+        // return biggest (= first) fitting amount of dices for this throw
+      return diceCombinations.filter(dices => dices.fits)[0].dices;
+    },
+    setThisThrowsWinner(throwId) {
+      const attacker = this.players[0];
+      const defender = this.players[1];
+      const { attackerWon, defenderWon } = this.compareThrowResults(
+        attacker.diceThrows[throwId].throwResult,
+        defender.diceThrows[throwId].throwResult,
+      );
+      attacker.troups -= defenderWon;
+      defender.troups -= attackerWon;
+    },
+    compareThrowResults(attackerResult, defenderResult) {
+      // [4,2,5] vs. [6,1] or [2,1] vs. [2,1] or [4] vs. [1, 5]
+
+      // reverse sorting: first = highest, last = lowest
+      const attackerResultSorted = attackerResult.sort((a, b) => b - a);
+      const defenderResultSorted = defenderResult.sort((a, b) => b - a);
+
+      // [true, true] or [true, false]/[false, true] or [false, false]
+      const matchResults = attackerResultSorted.map((attackerDice, index) => {
+        const defenderDice = defenderResultSorted[index];
+        if (!defenderDice) {
+          return undefined;
+        }
+        return attackerDice > defenderDice; // if equal, defender always wins
+      });
+
+      const attackerWon = matchResults.filter(win => win === true).length;
+      const defenderWon = matchResults.length - attackerWon;
+      return { attackerWon, defenderWon };
+    },
+
+    /* Helper Functions */
+
+    setUpPlayers() {
+      this.players = [...Array(this.playerAmount)].map((_, index) => ({
+        id: index,
+        troups: 1,
+        diceThrows: [], // e.g. [ { diceAmount: 3, throwResult: [ 2, 5, 6 ]} ]
+      }));
+    },
+    setDiceAmountForPlayers() {
+      this.players[0].diceThrows = [
+        { diceAmount: this.getThisThrowsDiceAmount(0), throwResult: [] },
+      ];
+      this.players[1].diceThrows = [
+        { diceAmount: this.getThisThrowsDiceAmount(1), throwResult: [] },
+      ];
+    },
+    isAttacker(playerId) {
+      return playerId === 0;
+    },
     formatInput(value) {
       const converted = parseInt(value, 10);
       return converted >= 0 ? converted : 0;
-    },
-    handleTroupsAmount(playerId, newTroupsAmount) {
-      this.debugRefresh += 1; // DEBUG
-
-      const newThrowAmount = this.calculateThrowAmount(playerId, newTroupsAmount);
-      this.players[playerId].throwAmount = newThrowAmount;
-
-      this.sliceThrowResults(playerId, newThrowAmount);
-
-      this.debugRefresh += 1; // DEBUG
-    },
-    handleThrowResults(playerId, newThrowResults) {
-      this.debugRefresh += 1; // DEBUG
-
-      const player = this.players[playerId];
-      player.throwResults = newThrowResults;
-
-      this.sliceThrowResults(playerId, player.throwAmount);
-
-      this.debugRefresh += 1; // DEBUG
-    },
-    sliceThrowResults(playerId, end) {
-      const { throwResults } = this.players[playerId];
-      this.players[playerId].throwResults = throwResults.slice(0, end);
-    },
-    handleFightStart() {
-      this.fightStarted = !this.fightStarted;
-    },
-    calculateThrowAmount(playerId, newTroupsAmount) {
-      /* TODO: logic for calculating correct amount of 3/2/1 dice throws
-      depending on amount of troups goes here */
-      return newTroupsAmount;
     },
   },
 };
