@@ -38,7 +38,7 @@
           <Thrower
             v-for="(aThrow, aThrowId) in player.diceThrows"
             :key="player.id + '-' + aThrowId"
-            :dices-for-throw="aThrow.diceAmount"
+            :dices-to-throw="aThrow.diceAmount"
             @throwResult="handleThrowResult(player.id, aThrowId, $event)"
           />
         </div>
@@ -123,10 +123,7 @@ export default {
     },
     handleThrowResult(playerId, aThrowId, throwResult) {
       this.players[playerId].diceThrows[aThrowId].throwResult = throwResult;
-      // TODO: following...
-      if (this.attackerTroups > 0 && this.defenderTroups > 0) {
-        this.setThisThrowsWinner(aThrowId);
-      }
+      this.updateTroupsForThrow(aThrowId);
     },
     handleFightStart() {
       this.setTroupsLeft(); // backup
@@ -155,34 +152,54 @@ export default {
       // return biggest (= first) fitting amount of dices for this throw
       return diceCombinations.filter(dices => dices.fits)[0].dices;
     },
-    setThisThrowsWinner(throwId) {
+    updateTroupsForThrow(throwId) {
       const attacker = this.players[0];
       const defender = this.players[1];
-      const { attackerWins, defenderWins } = this.compareThrowResults(
+
+      // makes sure all throwResults for all players-throws are in before evaluation
+      const attackerDiceAmount = attacker.diceThrows[throwId].diceAmount;
+      const defenderDiceAmount = defender.diceThrows[throwId].diceAmount;
+      const attackerThrowResult = attacker.diceThrows[throwId].throwResult;
+      const defenderThrowResult = defender.diceThrows[throwId].throwResult;
+      if (
+        attackerDiceAmount !== attackerThrowResult.length
+        || defenderDiceAmount !== defenderThrowResult.length
+      ) {
+        return;
+      }
+
+      const { attackerWins, defenderWins } = this.evaluateResultsForThrow(
         attacker.diceThrows[throwId].throwResult,
         defender.diceThrows[throwId].throwResult,
       );
+      console.log(`attacker won ${attackerWins}x and has ${attacker.troupsLeft - defenderWins} out of ${attacker.troupsLeft} troups left`);
+      console.log(`defender won ${defenderWins}x and has ${defender.troupsLeft - attackerWins} out of ${defender.troupsLeft} troups left`);
       attacker.troupsLeft -= defenderWins;
       defender.troupsLeft -= attackerWins;
+
+      // TODO: call another throw until troupsLeft from one party is 0
     },
-    compareThrowResults(attackerResult, defenderResult) {
+    evaluateResultsForThrow(attackerResult, defenderResult) {
       // [4,2,5] vs. [6,1] or [2,1] vs. [2,1] or [4] vs. [1, 5]
 
       // reverse sorting: first = highest, last = lowest
       const attackerResultSorted = attackerResult.sort((a, b) => b - a);
       const defenderResultSorted = defenderResult.sort((a, b) => b - a);
 
-      // [true, true] or [true, false]/[false, true] or [false, false]
-      const matchResults = attackerResultSorted.map((attackerDice, index) => {
-        const defenderDice = defenderResultSorted[index];
-        if (!defenderDice) {
-          return undefined;
-        }
-        return attackerDice > defenderDice; // if equal, defender always wins
-      });
+      // returns [true, true] or [true, false]/[false, true] or [false, false]
+      const matchResults = attackerResultSorted
+        .map((attackerDice, index) => {
+          const defenderDice = defenderResultSorted[index];
+          if (!defenderDice) {
+            return undefined;
+          }
+          return attackerDice > defenderDice; // if equal, defender always wins
+        })
+        .filter(bool => bool !== undefined);
 
       const attackerWins = matchResults.filter(win => win === true).length;
       const defenderWins = matchResults.length - attackerWins;
+
       return { attackerWins, defenderWins };
     },
 

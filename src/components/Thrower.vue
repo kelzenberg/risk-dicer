@@ -2,7 +2,7 @@
   <div>
     <h5>This throw resulted in:</h5>
     <Dice
-      v-for="diceId in dicesForThrow"
+      v-for="diceId in dicesToThrow"
       :key="diceId"
       :sides="sides"
       :number="diceId"
@@ -20,7 +20,7 @@ export default {
     Dice,
   },
   props: {
-    dicesForThrow: { type: Number, default: 0, required: true },
+    dicesToThrow: { type: Number, default: 1, required: true },
   },
   data() {
     return {
