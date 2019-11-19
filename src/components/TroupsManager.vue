@@ -26,12 +26,13 @@
           :autofocus="player.id === 0"
           placeholder="Gib die Anzahl der Truppen ein"
           :disabled="fightStarted"
-          @change="handleTroupsChange(player.id, $event)"
+          @update="handleTroupsUpdate(player.id, $event)"
         />
         <b-form-text>
           Gesamtsumme der {{ player.id === 0 ? 'angreifenden' : 'sich zu verteidigenden' }} Truppen
         </b-form-text>
-        <div>troups left: {{ player.troupsLeft }}</div>
+        <div>Amount of Troups: {{ player.troupsLeft }}</div>
+        <div>Dices for 1st throw: {{ player.diceThrows[0].diceAmount }}</div>
         <div v-if="fightStarted">
           <hr>
           <Thrower
@@ -114,11 +115,11 @@ export default {
 
     /* Event Handler */
 
-    handleTroupsChange(playerId, newTroups) {
-      this.players[playerId].initialTroups = newTroups;
-      this.players[playerId].troupsLeft = newTroups;
-      this.players[playerId].diceThrows = [{ diceAmount: 0, throwResult: [] }];
-      this.players[0].diceThrows[0].diceAmount = this.getThisThrowsDiceAmount(playerId);
+    handleTroupsUpdate(playerId, newTroups) {
+      const player = this.players[playerId];
+      player.initialTroups = newTroups;
+      player.troupsLeft = newTroups;
+      this.setDiceAmountForPlayers();
     },
     handleThrowResult(playerId, aThrowId, throwResult) {
       this.players[playerId].diceThrows[aThrowId].throwResult = throwResult;
@@ -151,7 +152,7 @@ export default {
           fits: Math.floor(troupsLeft / dices) >= 1,
           fitsTimes: Math.floor(troupsLeft / dices),
         }));
-        // return biggest (= first) fitting amount of dices for this throw
+      // return biggest (= first) fitting amount of dices for this throw
       return diceCombinations.filter(dices => dices.fits)[0].dices;
     },
     setThisThrowsWinner(throwId) {
@@ -193,7 +194,7 @@ export default {
         initialTroups: 1,
         troupsLeft: 1,
         // e.g.     [{ diceAmount: 3, throwResult: [ 2, 5, 6 ] }]
-        diceThrows: [{ diceAmount: 0, throwResult: [] }],
+        diceThrows: [{ diceAmount: 1, throwResult: [] }],
       }));
     },
     setTroupsLeft() {
@@ -213,7 +214,7 @@ export default {
     },
     formatInput(value) {
       const converted = parseInt(value, 10);
-      return converted >= 0 ? converted : 0;
+      return converted > 0 ? converted : 1;
     },
   },
 };
