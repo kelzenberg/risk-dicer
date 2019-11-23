@@ -8,10 +8,14 @@
         v-for="player in players"
         :key="player.id"
         :title="player.id === 0 ? 'Angreifer' : 'Verteidiger'"
-        :border-variant="player.id === 0 ? attackerBorderColor : defenderBorderColor"
+        :bg-variant="player.id === 0 ? attackerBorderColor : defenderBorderColor"
+        :text-variant="fightStarted ? 'white': ''"
       >
         <div class="mb-4">
-          <b-card-text>
+          <b-card-text
+            :key="updateAdjectiveKey"
+            :text-variant="fightStarted ? 'white': ''"
+          >
             wird {{
               player.id === 0 ?
                 randomAdjectives[0] + ' angreifen!' :
@@ -30,7 +34,7 @@
             :disabled="fightStarted"
             @update="handleTroupsUpdate(player.id, $event)"
           />
-          <b-form-text>
+          <b-form-text :text-variant="fightStarted ? 'white': ''">
             Gesamtsumme der {{ player.id === 0
               ? 'angreifenden'
               : 'sich zu verteidigenden'
@@ -40,7 +44,7 @@
         <b-row>
           <b-col>
             <b-button
-              variant="outline-secondary"
+              :variant="fightStarted ? 'light' : 'outline-secondary'"
               size="lg"
               disabled
               class="w-100"
@@ -51,24 +55,13 @@
           </b-col>
           <b-col>
             <b-button
-              variant="outline-secondary"
+              :variant="fightStarted ? 'light' : 'outline-secondary'"
               size="lg"
               disabled
               class="w-100"
             >
-              <div>{{ player.troupsLeft }}</div>
+              <div>{{ player.initialTroups }}</div>
               <div>{{ player.id === 0 ? 'attackieren' : 'verteidigen' }}</div>
-            </b-button>
-          </b-col>
-          <b-col>
-            <b-button
-              variant="outline-secondary"
-              size="lg"
-              disabled
-              class="w-100"
-            >
-              <div>{{ player.diceThrows[0].diceAmount }} von {{ player.id === 0 ? '3': '2' }}</div>
-              <div>Startwürfel</div>
             </b-button>
           </b-col>
         </b-row>
@@ -119,9 +112,10 @@ export default {
   data() {
     return {
       debugRefresh: 0,
+      updateAdjectiveKey: 0,
       adjectives: ['mutig', 'hoffnungsvoll', 'wutentbrannt', 'kriegerisch', 'entschlossen', 'selbstbewusst', 'kühn', 'tapfer', 'forsch', 'verwegen', 'heldenhaft', 'wagemutig', 'beherzt', 'konzentriert', 'überlegt', 'gelassen', 'beharrlich', 'kaltblütig', 'wacker', 'unerschrocken', 'tollkühn', 'keck', 'furchtlos', 'couragiert', 'guten Mutes', 'draufgängerisch', 'stolz', 'optimistisch', 'zuversichtlich', 'rasant', 'energisch', 'schwungvoll', 'hartnäckig', 'rigoros', 'MIT EINEM F****** EINH0RN'],
       players: [],
-      initialTroups: 3,
+      initialTroups: 1,
       fightStarted: false,
       fightLoading: false,
     };
@@ -190,14 +184,17 @@ export default {
       this.updateTroupsForThrow(aThrowId);
     },
     handleFightStart() {
-      this.fightLoading = true;
-      setTimeout(() => {
-        this.fightLoading = false;
-        this.fightStarted = !this.fightStarted;
-        if (!this.fightStarted) {
-          this.setUpPlayers();
-        }
-      }, 1000);
+      this.fightLoading = !this.fightStarted;
+      if (this.fightLoading) {
+        setTimeout(() => {
+          this.fightLoading = false;
+          this.fightStarted = true;
+        }, 500);
+      } else {
+        this.fightStarted = false;
+        this.setUpPlayers();
+        this.updateAdjectiveKey += 1;
+      }
     },
 
     /* Business Logic */
@@ -315,8 +312,7 @@ export default {
       return playerId === 0;
     },
     formatInput(value) {
-      const converted = parseInt(value, 10);
-      return converted > 0 ? converted : 1;
+      return parseInt(value, 10);
     },
   },
 };
