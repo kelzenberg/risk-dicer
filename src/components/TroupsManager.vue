@@ -78,6 +78,7 @@
             v-for="(aThrow, aThrowId) in player.diceThrows"
             :key="player.id + '-' + aThrowId"
             :dices-to-throw="aThrow.diceAmount"
+            :troups-left="player.troupsLeft"
             :class="player.id === 0 ? 'text-right': ''"
             @throwResult="handleThrowResult(player.id, aThrowId, $event)"
           />
@@ -248,7 +249,6 @@ export default {
       attacker.troupsLeft -= defenderWins;
       defender.troupsLeft -= attackerWins;
 
-      // TODO: call another throw until troupsLeft from one party is 0
       if (attacker.troupsLeft > 0 && defender.troupsLeft > 0) {
         attacker.diceThrows[throwId + 1] = {
           diceAmount: this.getDiceAmountForThrow(0),

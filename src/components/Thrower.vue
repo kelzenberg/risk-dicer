@@ -21,12 +21,17 @@ export default {
   },
   props: {
     dicesToThrow: { type: Number, default: 1, required: true },
+    troupsLeft: { type: Number, required: true },
   },
   data() {
     return {
       sides: 6,
       throwResult: [],
+      leftTroups: 0,
     };
+  },
+  mounted() {
+    this.leftTroups = this.troupsLeft;
   },
   methods: {
     handleDiceRoll(diceId, diceRollResult) {
