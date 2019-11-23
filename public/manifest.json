@@ -1,18 +1,7 @@
 {
-  "name": "bootstrap-vue-template",
-  "short_name": "bootstrap-vue-template",
-  "icons": [
-    {
-      "src": "./img/icons/android-chrome-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "./img/icons/android-chrome-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ],
+  "name": "risiko-nicer-dicer",
+  "short_name": "risiko-nicer-dicer",
+  "icons": [],
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
