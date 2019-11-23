@@ -49,8 +49,8 @@
               disabled
               class="w-100"
             >
-              <div>{{ player.troupsLost }}</div>
-              <div>verloren</div>
+              <div>{{ player.troupsLeft }}</div>
+              <div>übrig</div>
             </b-button>
           </b-col>
           <b-col>
@@ -60,8 +60,8 @@
               disabled
               class="w-100"
             >
-              <div>{{ player.initialTroups }}</div>
-              <div>{{ player.id === 0 ? 'attackieren' : 'verteidigen' }}</div>
+              <div>{{ player.troupsLost }}</div>
+              <div>verloren</div>
             </b-button>
           </b-col>
         </b-row>
@@ -239,8 +239,6 @@ export default {
         defenderThrowResult,
       );
 
-      console.log(`attacker won ${attackerWins}x and has ${attacker.troupsLeft - defenderWins} out of ${attacker.troupsLeft} troups left`);
-      console.log(`defender won ${defenderWins}x and has ${defender.troupsLeft - attackerWins} out of ${defender.troupsLeft} troups left`);
       attacker.troupsLost += defenderWins;
       defender.troupsLost += attackerWins;
       attacker.troupsLeft -= defenderWins;
