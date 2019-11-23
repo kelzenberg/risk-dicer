@@ -4,15 +4,6 @@
       id="app"
       class="mt-5"
     />
-    <footer id="footer">
-      made by <b-link
-        href="https://github.com/kelzenberg"
-        rel="author"
-        target="_blank"
-      >
-        kelzenberg
-      </b-link>
-    </footer>
   </div>
 </template>
 
@@ -23,16 +14,15 @@
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
 }
-#footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 60px;
-  text-align: center;
-  color: darkgrey;
 
-  a {
-    color: lightsteelblue;
-  }
+html {
+  background-image: url('./assets/background.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 100%;
+}
+body {
+  background-color: rgba(255,255,255,0) !important;
 }
 </style>

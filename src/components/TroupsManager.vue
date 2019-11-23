@@ -79,7 +79,7 @@
       </b-card>
     </b-card-group>
     <div
-      class="w-75 mx-auto"
+      class="w-75 mx-auto mb-4"
     >
       <b-button
         size="lg"
