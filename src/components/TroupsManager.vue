@@ -7,34 +7,71 @@
       <b-card
         v-for="player in players"
         :key="player.id"
-        :title="player.id === 0 ? 'Spieler A' : 'Spieler B'"
+        :title="player.id === 0 ? 'Angreifer' : 'Verteidiger'"
         :border-variant="player.id === 0 ? attackerBorderColor : defenderBorderColor"
       >
-        <b-card-text>
-          wird {{
-            player.id === 0 ?
-              randomAdjectives[0] + ' angreifen!' :
-              'sich ' +randomAdjectives[1] +' verteidigen!'
-          }}
-        </b-card-text>
-        <b-form-input
-          v-model="player.initialTroups"
-          type="number"
-          min="1"
-          number
-          :formatter="formatInput"
-          autocomplete="false"
-          :autofocus="player.id === 0"
-          placeholder="Gib die Anzahl der Truppen ein"
-          :disabled="fightStarted"
-          @update="handleTroupsUpdate(player.id, $event)"
-        />
-        <b-form-text>
-          Gesamtsumme der {{ player.id === 0 ? 'angreifenden' : 'sich zu verteidigenden' }} Truppen
-        </b-form-text>
-        <div>Troups left: {{ player.troupsLeft }}</div>
-        <div>Troups lost: {{ player.troupsLost }}</div>
-        <div>Dices for 1st throw: {{ player.diceThrows[0].diceAmount }}</div>
+        <div class="mb-4">
+          <b-card-text>
+            wird {{
+              player.id === 0 ?
+                randomAdjectives[0] + ' angreifen!' :
+                'sich ' +randomAdjectives[1] +' verteidigen!'
+            }}
+          </b-card-text>
+          <b-form-input
+            v-model="player.initialTroups"
+            type="number"
+            min="1"
+            number
+            :formatter="formatInput"
+            autocomplete="false"
+            :autofocus="player.id === 0"
+            placeholder="Gib die Anzahl der Truppen ein"
+            :disabled="fightStarted"
+            @update="handleTroupsUpdate(player.id, $event)"
+          />
+          <b-form-text>
+            Gesamtsumme der {{ player.id === 0
+              ? 'angreifenden'
+              : 'sich zu verteidigenden'
+            }} Truppen
+          </b-form-text>
+        </div>
+        <b-row>
+          <b-col>
+            <b-button
+              variant="outline-secondary"
+              size="lg"
+              disabled
+              class="w-100"
+            >
+              <div>{{ player.troupsLost }}</div>
+              <div>verloren</div>
+            </b-button>
+          </b-col>
+          <b-col>
+            <b-button
+              variant="outline-secondary"
+              size="lg"
+              disabled
+              class="w-100"
+            >
+              <div>{{ player.troupsLeft }}</div>
+              <div>{{ player.id === 0 ? 'attackieren' : 'verteidigen' }}</div>
+            </b-button>
+          </b-col>
+          <b-col>
+            <b-button
+              variant="outline-secondary"
+              size="lg"
+              disabled
+              class="w-100"
+            >
+              <div>{{ player.diceThrows[0].diceAmount }} von {{ player.id === 0 ? '3': '2' }}</div>
+              <div>Startwürfel</div>
+            </b-button>
+          </b-col>
+        </b-row>
         <div v-if="fightStarted">
           <hr>
           <Thrower
@@ -56,7 +93,12 @@
         block
         @click="handleFightStart"
       >
-        {{ fightStarted ? 'Reset' : 'Fight!' }}
+        <div v-if="fightLoading">
+          <b-spinner label="Spinning" />
+        </div>
+        <div v-else>
+          {{ fightStarted ? 'Reset' : 'Fight!' }}
+        </div>
       </b-button>
     </div>
   </div>
@@ -80,6 +122,7 @@ export default {
       players: [],
       initialTroups: 3,
       fightStarted: false,
+      fightLoading: false,
     };
   },
   computed: {
@@ -146,10 +189,14 @@ export default {
       this.updateTroupsForThrow(aThrowId);
     },
     handleFightStart() {
-      this.fightStarted = !this.fightStarted;
-      if (!this.fightStarted) {
-        this.setUpPlayers();
-      }
+      this.fightLoading = true;
+      setTimeout(() => {
+        this.fightLoading = false;
+        this.fightStarted = !this.fightStarted;
+        if (!this.fightStarted) {
+          this.setUpPlayers();
+        }
+      }, 1000);
     },
 
     /* Business Logic */

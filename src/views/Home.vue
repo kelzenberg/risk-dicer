@@ -1,8 +1,11 @@
 <template>
   <b-container>
-    <h2 class="mb-4">
-      Risiko Würfler 9000
+    <h2>
+      Nicer Dicer
     </h2>
+    <h5 class="mb-4">
+      Risiko over 9000
+    </h5>
     <TroupsManager :player-amount="2" />
   </b-container>
 </template>
